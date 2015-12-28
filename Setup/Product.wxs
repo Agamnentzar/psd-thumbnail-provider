@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="*" Name="PSD Thumbnail Provider" Language="1033" Version="1.2.1.0" Manufacturer="Agamnentzar" UpgradeCode="cb88ff56-355c-48fd-8343-8d3f40ef02ce">
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+		<Condition Message="You need to be an administrator to install this product.">Privileged</Condition>
+		<MajorUpgrade Schedule="afterInstallInitialize" DowngradeErrorMessage="A newer version of PSD Thumbnail Provider is already installed." />
+		<Media Id="1" Cabinet="Main.cab" EmbedCab="yes" />
+
+		<Feature Id="ProductFeature" Title="PSD Thumbnail Provider" Level="1">
+			<ComponentRef Id="MainDllComponent" />
+			<ComponentRef Id="RegistryEntries" />
+		</Feature>
+
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="System64Folder" Name="SystemFolderName">
+				<Component Id="MainDllComponent" Guid="*">
+					<File Id="MainDllFile" Name="PsdThumbnailProvider.dll" Source="..\PsdThumbnailProvider\x64\Release\PsdThumbnailProvider.dll" />
+				</Component>
+			</Directory>
+		</Directory>
+
+		<DirectoryRef Id="TARGETDIR">
+			<Component Id="RegistryEntries" Guid="*">
+				<RegistryKey Root="HKCR" Key="CLSID\{5BB45D32-AF01-414F-B60A-5E999B986681}" ForceCreateOnInstall="yes" ForceDeleteOnUninstall="yes">
+					<RegistryValue Type="string" Value="Agamnentzar.PsdThumbnailProvider Class" />
+					<RegistryKey Key="InprocServer32" ForceCreateOnInstall="yes" ForceDeleteOnUninstall="yes">
+						<RegistryValue Type="string" Value="[System64Folder]PsdThumbnailProvider.dll" />
+						<RegistryValue Type="string" Name="ThreadingModel" Value="Apartment" />
+					</RegistryKey>
+				</RegistryKey>
+				<RegistryKey Root="HKCR" Key=".psd\shellex\{e357fccd-a995-4576-b01f-234630154e96}" ForceCreateOnInstall="yes" ForceDeleteOnUninstall="yes">
+					<RegistryValue Type="string" Value="{5BB45D32-AF01-414F-B60A-5E999B986681}" />
+				</RegistryKey>
+			</Component>
+		</DirectoryRef>
+
+		<Icon Id="MainIcon" SourceFile="icon.ico" />
+		<Property Id="ARPPRODUCTICON" Value="MainIcon" />
+
+	</Product>
+</Wix>

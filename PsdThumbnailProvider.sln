@@ -1,0 +1,65 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C9250E0E-3B03-4029-ADF0-0FA8B1AEB70A}"
+EndProject
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "Setup", "Setup\Setup.wixproj", "{EA1C995B-28A6-4036-911B-F83B361AC895}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PsdThumbnailProvider", "PsdThumbnailProvider\PsdThumbnailProvider.vcxproj", "{145AB33E-71A1-42C3-8223-E107CFC162F4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|Win32 = Debug|Win32
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|Win32 = Release|Win32
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Debug|Win32.ActiveCfg = Debug|x86
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Debug|Win32.Build.0 = Debug|x86
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Debug|x64.ActiveCfg = Debug|x64
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Debug|x64.Build.0 = Debug|x64
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Debug|x86.ActiveCfg = Debug|x86
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Debug|x86.Build.0 = Debug|x86
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Release|Any CPU.ActiveCfg = Release|x86
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Release|Mixed Platforms.Build.0 = Release|x86
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Release|Win32.ActiveCfg = Release|x86
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Release|Win32.Build.0 = Release|x86
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Release|x64.ActiveCfg = Release|x64
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Release|x64.Build.0 = Release|x64
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Release|x86.ActiveCfg = Release|x86
+		{EA1C995B-28A6-4036-911B-F83B361AC895}.Release|x86.Build.0 = Release|x86
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Debug|Win32.Build.0 = Debug|Win32
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Debug|x64.ActiveCfg = Debug|x64
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Debug|x64.Build.0 = Debug|x64
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Debug|x86.ActiveCfg = Debug|Win32
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Debug|x86.Build.0 = Debug|Win32
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Release|Any CPU.ActiveCfg = Release|Win32
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Release|Win32.ActiveCfg = Release|Win32
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Release|Win32.Build.0 = Release|Win32
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Release|x64.ActiveCfg = Release|x64
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Release|x64.Build.0 = Release|x64
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Release|x86.ActiveCfg = Release|Win32
+		{145AB33E-71A1-42C3-8223-E107CFC162F4}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
