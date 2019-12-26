@@ -23,6 +23,12 @@ UINT ReadUInt32(IStream *pStream) {
 	return b[0] << 24 | b[1] << 16 | b[2] << 8 | b[3];
 }
 
+SHORT ReadInt16(IStream *pStream) {
+	BYTE b[2];
+	ReadData(pStream, b, 2);
+	return b[0] << 8 | b[1];
+}
+
 USHORT ReadUInt16(IStream *pStream) {
 	BYTE b[2];
 	ReadData(pStream, b, 2);
@@ -104,8 +110,8 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 		UINT layerAndMastInfoOffset = Tell(stream);
 
 		UINT layerInfoLength = ReadUInt32(stream);
-		USHORT layerCount = ReadUInt16(stream);
-		bool globalAlpha = layerAndMaskInfoLength < 0;
+		SHORT layerCount = ReadInt16(stream);
+		bool globalAlpha = layerCount < 0;
 
 		Seek(stream, layerAndMastInfoOffset + layerAndMaskInfoLength, STREAM_SEEK_SET);
 
@@ -168,13 +174,13 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 
 								for (int j = 0; j <= header; j++) {
 									data[p] = value;
-									p = (p + step);
+									p += step;
 								}
 							}
 							else { // header < 128
 								for (int j = 0; j <= header; j++) {
 									data[p] = buffer[++i];
-									p = (p + step);
+									p += step;
 								}
 							}
 						}
@@ -188,11 +194,11 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 
 				if (width > height) {
 					thumbWidth = 256;
-					thumbHeight = floor(height * thumbWidth / width);
+					thumbHeight = height * thumbWidth / width;
 				}
 				else {
 					thumbHeight = 256;
-					thumbWidth = floor(width * thumbHeight / height);
+					thumbWidth = width * thumbHeight / height;
 				}
 
 				BLENDFUNCTION fnc;
