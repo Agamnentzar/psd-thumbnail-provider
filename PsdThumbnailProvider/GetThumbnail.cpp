@@ -134,14 +134,14 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 			int dataLength = width * height * 4;
 			BYTE* data = new BYTE[dataLength];
 
+			for (int i = 0; i < dataLength; i++) {
+				data[i] = 0xff;
+			}
+
 			if (compression == 1) {
 				USHORT* lengths = new USHORT[channelCount * height];
 				int step = 4;
 				int maxLength = 0;
-
-				for (int i = 0; i < dataLength; i++) {
-					data[i] = 0xff;
-				}
 
 				for (int o = 0, li = 0; o < channelCount; o++) {
 					for (int y = 0; y < height; y++, li++) {
@@ -191,7 +191,6 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 				delete lengths;
 				delete buffer;
 			} else {
-				memset(data, 0xff, width * height * 4);
 				int pixels = width * height;
 				BYTE* buffer = new BYTE[pixels];
 				if (channelCount > 4) channelCount = 4;
@@ -208,45 +207,56 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 				delete buffer;
 			}
 
-			if (width > 256 || height > 256) {
-				HBITMAP fullBitmap = CreateBitmap(width, height, 1, 32, data);
-				int thumbWidth, thumbHeight;
+			bool allWhite = true;
 
-				if (width > height) {
-					thumbWidth = 256;
-					thumbHeight = height * thumbWidth / width;
+			for (int i = 0; i < dataLength; i++) {
+				if (data[i] != 0xff) {
+					allWhite = false;
+					break;
+				}
+			}
+
+			if (!allWhite) {
+				if (width > 256 || height > 256) {
+					HBITMAP fullBitmap = CreateBitmap(width, height, 1, 32, data);
+					int thumbWidth, thumbHeight;
+
+					if (width > height) {
+						thumbWidth = 256;
+						thumbHeight = height * thumbWidth / width;
+					}
+					else {
+						thumbHeight = 256;
+						thumbWidth = width * thumbHeight / height;
+					}
+
+					BLENDFUNCTION fnc;
+					fnc.BlendOp = AC_SRC_OVER;
+					fnc.BlendFlags = 0;
+					fnc.SourceConstantAlpha = 0xFF;
+					fnc.AlphaFormat = AC_SRC_ALPHA;
+
+					HDC dc = GetDC(NULL);
+					HDC srcDC = CreateCompatibleDC(dc);
+					HDC memDC = CreateCompatibleDC(dc);
+					result = CreateCompatibleBitmap(dc, thumbWidth, thumbHeight);
+					SelectObject(memDC, result);
+					SelectObject(srcDC, fullBitmap);
+
+					RECT rect = {};
+					rect.right = thumbWidth;
+					rect.bottom = thumbHeight;
+					FillRect(memDC, &rect, (HBRUSH)GetStockObject(NULL_BRUSH));
+					AlphaBlend(memDC, 0, 0, thumbWidth, thumbHeight, srcDC, 0, 0, width, height, fnc);
+
+					DeleteObject(fullBitmap);
+					DeleteDC(srcDC);
+					DeleteDC(memDC);
+					ReleaseDC(NULL, dc);
 				}
 				else {
-					thumbHeight = 256;
-					thumbWidth = width * thumbHeight / height;
+					result = CreateBitmap(width, height, 1, 32, data);
 				}
-
-				BLENDFUNCTION fnc;
-				fnc.BlendOp = AC_SRC_OVER;
-				fnc.BlendFlags = 0;
-				fnc.SourceConstantAlpha = 0xFF;
-				fnc.AlphaFormat = AC_SRC_ALPHA;
-
-				HDC dc = GetDC(NULL);
-				HDC srcDC = CreateCompatibleDC(dc);
-				HDC memDC = CreateCompatibleDC(dc);
-				result = CreateCompatibleBitmap(dc, thumbWidth, thumbHeight);
-				SelectObject(memDC, result);
-				SelectObject(srcDC, fullBitmap);
-
-				RECT rect = {};
-				rect.right = thumbWidth;
-				rect.bottom = thumbHeight;
-				FillRect(memDC, &rect, (HBRUSH)GetStockObject(NULL_BRUSH));
-				AlphaBlend(memDC, 0, 0, thumbWidth, thumbHeight, srcDC, 0, 0, width, height, fnc);
-
-				DeleteObject(fullBitmap);
-				DeleteDC(srcDC);
-				DeleteDC(memDC);
-				ReleaseDC(NULL, dc);
-			}
-			else {
-				result = CreateBitmap(width, height, 1, 32, data);
 			}
 
 			delete data;
