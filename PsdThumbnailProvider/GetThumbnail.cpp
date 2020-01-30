@@ -117,75 +117,95 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 
 		USHORT compression = ReadUInt16(stream);
 
-		if (compression == 1) {
-			int channelCount = 3;
-			int offsets[16] = { 2, 1, 0 };
+		int channelCount = 3;
+		int offsets[16] = { 2, 1, 0 };
 
-			if (channels && channels > 3) {
-				for (int i = 3; i < channels; i++) {
-					offsets[i] = i;
-					channelCount++;
-				}
-			}
-			else if (globalAlpha) {
-				offsets[3] = 3;
+		if (channels && channels > 3) {
+			for (int i = 3; i < channels; i++) {
+				offsets[i] = i;
 				channelCount++;
 			}
+		} else if (globalAlpha) {
+			offsets[3] = 3;
+			channelCount++;
+		}
 
-			USHORT* lengths = new USHORT[channelCount * height];
+		if (compression == 1 || compression == 0) {
 			int dataLength = width * height * 4;
-			int step = 4;
-			int maxLength = 0;
 			BYTE* data = new BYTE[dataLength];
 
-			for (int i = 0; i < dataLength; i++) {
-				data[i] = 0xff;
-			}
+			if (compression == 1) {
+				USHORT* lengths = new USHORT[channelCount * height];
+				int step = 4;
+				int maxLength = 0;
 
-			for (int o = 0, li = 0; o < channelCount; o++) {
-				for (int y = 0; y < height; y++, li++) {
-					lengths[li] = ReadUInt16(stream);
-					maxLength = maxLength < lengths[li] ? lengths[li] : maxLength;
+				for (int i = 0; i < dataLength; i++) {
+					data[i] = 0xff;
 				}
-			}
 
-			BYTE* buffer = new BYTE[maxLength];
-
-			for (int c = 0, li = 0; c < channelCount; c++) {
-				int offset = offsets[c];
-				int extra = c > 3 || offset > 3;
-
-				if (extra) {
+				for (int o = 0, li = 0; o < channelCount; o++) {
 					for (int y = 0; y < height; y++, li++) {
-						Seek(stream, lengths[li], STREAM_SEEK_CUR);
+						lengths[li] = ReadUInt16(stream);
+						maxLength = maxLength < lengths[li] ? lengths[li] : maxLength;
 					}
 				}
-				else {
-					for (int y = 0, p = offset; y < height; y++, li++) {
-						int length = lengths[li];
-						ReadData(stream, buffer, length);
 
-						for (int i = 0; i < length; i++) {
-							BYTE header = buffer[i];
+				BYTE* buffer = new BYTE[maxLength];
 
-							if (header >= 128) {
-								BYTE value = buffer[++i];
-								header = (256 - header);
+				for (int c = 0, li = 0; c < channelCount; c++) {
+					int offset = offsets[c];
+					int extra = c > 3 || offset > 3;
 
-								for (int j = 0; j <= header; j++) {
-									data[p] = value;
-									p += step;
+					if (extra) {
+						for (int y = 0; y < height; y++, li++) {
+							Seek(stream, lengths[li], STREAM_SEEK_CUR);
+						}
+					}
+					else {
+						for (int y = 0, p = offset; y < height; y++, li++) {
+							int length = lengths[li];
+							ReadData(stream, buffer, length);
+
+							for (int i = 0; i < length; i++) {
+								BYTE header = buffer[i];
+
+								if (header >= 128) {
+									BYTE value = buffer[++i];
+									header = (256 - header);
+
+									for (int j = 0; j <= header; j++) {
+										data[p] = value;
+										p += step;
+									}
 								}
-							}
-							else { // header < 128
-								for (int j = 0; j <= header; j++) {
-									data[p] = buffer[++i];
-									p += step;
+								else { // header < 128
+									for (int j = 0; j <= header; j++) {
+										data[p] = buffer[++i];
+										p += step;
+									}
 								}
 							}
 						}
 					}
 				}
+				delete lengths;
+				delete buffer;
+			} else {
+				memset(data, 0xff, width * height * 4);
+				int pixels = width * height;
+				BYTE* buffer = new BYTE[pixels];
+				if (channelCount > 4) channelCount = 4;
+
+				for (int c = 0; c < channelCount; c++) {
+					int o = offsets[c];
+					ReadData(stream, buffer, pixels);
+
+					for (int i = 0; i < pixels; i++) {
+						data[i * 4 + o] = buffer[i];
+					}
+				}
+
+				delete buffer;
 			}
 
 			if (width > 256 || height > 256) {
@@ -229,8 +249,6 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 				result = CreateBitmap(width, height, 1, 32, data);
 			}
 
-			delete lengths;
-			delete buffer;
 			delete data;
 		}
 	}

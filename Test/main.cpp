@@ -9,7 +9,7 @@ LRESULT CALLBACK windowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	switch (message) {
 	case WM_CREATE: {
 		IStream* stream;
-		SHCreateStreamOnFileEx(L"test4.psd", STGM_READ, FILE_ATTRIBUTE_NORMAL, false, NULL, &stream);
+		SHCreateStreamOnFileEx(L"test6.psd", STGM_READ, FILE_ATTRIBUTE_NORMAL, false, NULL, &stream);
 		bitmap = GetPSDThumbnail(stream);
 		BITMAP bm = {};
 		GetObject(bitmap, sizeof(bm), &bm);
@@ -73,7 +73,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR pCmdLine
 	HWND mainWindow = CreateWindowEx(
 		0,  // WS_EX_ACCEPTFILES
 		windowClass.lpszClassName,
-		TEXT("Aggie Brush"),
+		TEXT("PSD Preview Test"),
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
