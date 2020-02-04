@@ -2,6 +2,8 @@
 
 PSD thumbnail provider for Windows Explorer
 
+[Download latest installer](https://github.com/Agamnentzar/psd-thumbnail-provider/releases)
+
 ## Supported systems
 
 * **Windows Vista/7/8/10 x64**
