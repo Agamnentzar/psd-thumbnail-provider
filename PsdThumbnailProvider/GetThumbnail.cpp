@@ -2,12 +2,16 @@
 #include "gdiplus.h"
 #include <Shlwapi.h>
 #include <math.h>
+#include <objidl.h> // Gdiplus
+#include <gdiplus.h> // Gdiplus
 
 #pragma comment(lib, "Shlwapi.lib")
+#pragma comment (lib, "Gdiplus.lib") // Gdiplus
+#pragma comment (lib, "Msimg32.lib") // AlphaBlend
 
 using namespace Gdiplus;
 
-void ReadData(IStream *pStream, BYTE *data, ULONG length) {
+inline void ReadData(IStream *pStream, BYTE *data, ULONG length) {
 	ULONG read, total = 0;
 	HRESULT hr;
 
@@ -17,42 +21,58 @@ void ReadData(IStream *pStream, BYTE *data, ULONG length) {
 	} while (total < length && hr == S_OK);
 }
 
-UINT ReadUInt32(IStream *pStream) {
+inline UINT ReadUInt32(IStream *pStream) {
 	BYTE b[4];
 	ReadData(pStream, b, 4);
 	return b[0] << 24 | b[1] << 16 | b[2] << 8 | b[3];
 }
 
-SHORT ReadInt16(IStream *pStream) {
+inline ULONG64 ReadUInt64(IStream *pStream) {
+	BYTE b[8];
+	ReadData(pStream, b, 8);
+	return (ULONG64)b[0] << 56 | (ULONG64)b[1] << 48 | (ULONG64)b[2] << 40 | (ULONG64)b[3] << 32 | (ULONG64)b[4] << 24 | (ULONG64)b[5] << 16 | (ULONG64)b[6] << 8 | (ULONG64)b[7];
+}
+
+inline SHORT ReadInt16(IStream *pStream) {
 	BYTE b[2];
 	ReadData(pStream, b, 2);
 	return b[0] << 8 | b[1];
 }
 
-USHORT ReadUInt16(IStream *pStream) {
+inline USHORT ReadUInt16(IStream *pStream) {
 	BYTE b[2];
 	ReadData(pStream, b, 2);
 	return b[0] << 8 | b[1];
 }
 
-BYTE ReadByte(IStream *pStream) {
+inline BYTE ReadByte(IStream *pStream) {
 	BYTE b;
 	ReadData(pStream, &b, 1);
 	return b;
 }
 
-void Seek(IStream *pStream, int offset, DWORD origin) {
-	LARGE_INTEGER pos;
-	pos.QuadPart = offset;
-	pStream->Seek(pos, origin, NULL);
+inline LONGLONG ReadSectionLength(IStream *pStream, int version = 1) {
+	if (version == 1) {
+		return (LONGLONG)ReadUInt32(pStream);
+	} else {
+		return (LONGLONG)ReadUInt64(pStream);
+	}
 }
 
-UINT Tell(IStream *pStream) {
+inline void Seek(IStream *pStream, LONGLONG offset, DWORD origin) {
+	if (offset > 0) {
+		LARGE_INTEGER pos;
+		pos.QuadPart = offset;
+		pStream->Seek(pos, origin, NULL);
+	}
+}
+
+inline ULONGLONG Tell(IStream *pStream) {
 	LARGE_INTEGER pos;
 	ULARGE_INTEGER newPos;
 	pos.QuadPart = 0;
 	pStream->Seek(pos, STREAM_SEEK_CUR, &newPos);
-	return (UINT)newPos.QuadPart;
+	return newPos.QuadPart;
 }
 
 HBITMAP GetPSDThumbnail(IStream* stream) {
@@ -60,8 +80,7 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 	UINT signature = ReadUInt32(stream);
 	USHORT version = ReadUInt16(stream);
 
-	if (signature != 0x38425053 || version != 1)
-		return NULL;
+	if (signature != 0x38425053 || (version != 1 && version != 2)) return NULL;
 
 	Seek(stream, 6, STREAM_SEEK_CUR);
 
@@ -70,46 +89,48 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 	int width = ReadUInt32(stream);
 	USHORT bitsPerChannel = ReadUInt16(stream);
 	USHORT colorMode = ReadUInt16(stream);
-	UINT length = ReadUInt32(stream);
+	int maxSize = version == 1 ? 30000 : 300000;
+	if (width > maxSize || height > maxSize) return NULL;
 
-	if (length > 0) {
-		Seek(stream, length, STREAM_SEEK_CUR);
-	}
+	// color mode data
+	auto colorModeLength = ReadSectionLength(stream);
+	Seek(stream, colorModeLength, STREAM_SEEK_CUR);
 
-	UINT resourcesLength = ReadUInt32(stream);
-	UINT reasourceOffset = Tell(stream);
-	UINT thumbnailOffset = 0;
-	UINT resourceAdvanced = 0;
+	// image resources
+	auto resourcesLength = ReadSectionLength(stream);
+	auto reasourceOffset = Tell(stream);
+	ULONGLONG resourceEnd = reasourceOffset + resourcesLength;
+	LONGLONG thumbnailOffset = 0;
+	ULONG thumbnailLength = 0;
 
-	while (resourcesLength > resourceAdvanced) {
-		Seek(stream, 4, STREAM_SEEK_CUR);
+	while (Tell(stream) < resourceEnd) {
+		Seek(stream, 4, STREAM_SEEK_CUR); // signature
 
 		USHORT id = ReadUInt16(stream);
-		BYTE strl = ReadByte(stream);
 
-		Seek(stream, strl % 2 == 0 ? strl + 1 : strl, STREAM_SEEK_CUR);
+		BYTE nameLength = ReadByte(stream); // name
+		Seek(stream, ((nameLength + 1) % 2) ? nameLength + 1 : nameLength, STREAM_SEEK_CUR);
 
-		length = ReadUInt32(stream);
+		auto length = ReadSectionLength(stream);
 
 		if (id == 1036) {
 			thumbnailOffset = Tell(stream);
+			thumbnailLength = (ULONG)length;
 			break;
 		}
 
-		Seek(stream, length % 2 ? length + 1 : length, STREAM_SEEK_CUR);
-
-		resourceAdvanced += 6 + 1 + (strl % 2 == 0 ? strl + 1 : strl) +
-			4 + (length % 2 ? length + 1 : length);
+		Seek(stream, length, STREAM_SEEK_CUR);
+		if (Tell(stream) % 2) Seek(stream, 1, STREAM_SEEK_CUR);
 	}
 
 	// read composite image
-	if (colorMode == 3 && ((width <= 256 && height <= 256) || !thumbnailOffset)) {
+	if (false && colorMode == 3 && ((width <= 256 && height <= 256) || !thumbnailOffset)) {
 		Seek(stream, reasourceOffset + resourcesLength, STREAM_SEEK_SET);
 
-		UINT layerAndMaskInfoLength = ReadUInt32(stream);
-		UINT layerAndMastInfoOffset = Tell(stream);
+		auto layerAndMaskInfoLength = ReadSectionLength(stream);
+		auto layerAndMastInfoOffset = Tell(stream);
 
-		UINT layerInfoLength = ReadUInt32(stream);
+		auto layerInfoLength = ReadSectionLength(stream);
 		SHORT layerCount = ReadInt16(stream);
 		bool globalAlpha = layerCount < 0;
 
@@ -160,8 +181,7 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 						for (int y = 0; y < height; y++, li++) {
 							Seek(stream, lengths[li], STREAM_SEEK_CUR);
 						}
-					}
-					else {
+					} else {
 						for (int y = 0, p = offset; y < height; y++, li++) {
 							int length = lengths[li];
 							ReadData(stream, buffer, length);
@@ -177,8 +197,7 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 										data[p] = value;
 										p += step;
 									}
-								}
-								else { // header < 128
+								} else { // header < 128
 									for (int j = 0; j <= header; j++) {
 										data[p] = buffer[++i];
 										p += step;
@@ -224,8 +243,7 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 					if (width > height) {
 						thumbWidth = 256;
 						thumbHeight = height * thumbWidth / width;
-					}
-					else {
+					} else {
 						thumbHeight = 256;
 						thumbWidth = width * thumbHeight / height;
 					}
@@ -253,8 +271,7 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 					DeleteDC(srcDC);
 					DeleteDC(memDC);
 					ReleaseDC(NULL, dc);
-				}
-				else {
+				} else {
 					result = CreateBitmap(width, height, 1, 32, data);
 				}
 			}
@@ -272,9 +289,9 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 		if (Ok == GdiplusStartup(&token, &input, NULL)) {
 			Seek(stream, 4 + 4 + 4 + 4 + 4 + 4 + 2 + 2, STREAM_SEEK_CUR);
 
-			BYTE *data = new BYTE[length];
-			ReadData(stream, data, length);
-			IStream *memory = SHCreateMemStream(data, length);
+			BYTE *data = new BYTE[thumbnailLength]; // TODO: should this be freed?
+			ReadData(stream, data, thumbnailLength);
+			IStream *memory = SHCreateMemStream(data, thumbnailLength);
 
 			if (memory) {
 				Seek(memory, 0, STREAM_SEEK_SET);

@@ -9,7 +9,7 @@ LRESULT CALLBACK windowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lPara
 	switch (message) {
 	case WM_CREATE: {
 		IStream* stream;
-		SHCreateStreamOnFileEx(L"test4.psd", STGM_READ, FILE_ATTRIBUTE_NORMAL, false, NULL, &stream);
+		SHCreateStreamOnFileEx(L"test7.psb", STGM_READ, FILE_ATTRIBUTE_NORMAL, false, NULL, &stream);
 		bitmap = GetPSDThumbnail(stream);
 		BITMAP bm = {};
 		GetObject(bitmap, sizeof(bm), &bm);
