@@ -124,7 +124,7 @@ HBITMAP GetPSDThumbnail(IStream* stream) {
 	}
 
 	// read composite image
-	if (false && colorMode == 3 && ((width <= 256 && height <= 256) || !thumbnailOffset)) {
+	if (colorMode == 3 && ((width <= 256 && height <= 256) || !thumbnailOffset)) {
 		Seek(stream, reasourceOffset + resourcesLength, STREAM_SEEK_SET);
 
 		auto layerAndMaskInfoLength = ReadSectionLength(stream);

@@ -57,7 +57,7 @@ IFACEMETHODIMP PsdThumbnailProvider::GetThumbnail(UINT cx, HBITMAP *phbmp, WTS_A
 	*pdwAlpha = WTSAT_ARGB;
 	*phbmp = GetPSDThumbnail(m_pStream);
 
-	// m_pStream->Release();
+	m_pStream->Release();
 
 	return *phbmp != NULL ? NOERROR : E_NOTIMPL;
 }
