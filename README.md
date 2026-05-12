@@ -6,7 +6,7 @@ PSD thumbnail provider for Windows Explorer
 
 ## Supported systems
 
-* **Windows Vista/7/8/10 x64**
+* **Windows Vista/7/8/10/11 x64**
 
 ## Building
 
