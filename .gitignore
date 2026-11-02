@@ -4,3 +4,4 @@ Release
 .vs
 *.sdf
 *.vcxproj.user
+Test/extra
